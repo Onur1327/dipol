@@ -7,8 +7,8 @@ import HeroCarousel from '@/components/HeroCarousel';
 import ProductCarousel from '@/components/ProductCarousel';
 import { serverApiRequest } from '@/lib/api';
 
-// Anasayfayı cache'li yap (1 saatte bir yenilensin)
-export const revalidate = 3600;
+// Anasayfayı cache'li yap (24 saatte bir yenilensin - ISR limitini azaltmak için)
+export const revalidate = 86400;
 
 async function getFeaturedProducts() {
   try {

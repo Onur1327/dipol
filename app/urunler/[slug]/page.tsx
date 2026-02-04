@@ -4,8 +4,8 @@ import Footer from '@/components/Footer';
 import ProductDetail from '@/components/ProductDetail';
 import { serverApiRequest } from '@/lib/api';
 
-// Ürün detay sayfasını cache'li yap (1 saatte bir yenilensin)
-export const revalidate = 3600;
+// Ürün detay sayfasını cache'li yap (24 saatte bir yenilensin - ISR limitini azaltmak için)
+export const revalidate = 86400;
 
 async function getProduct(slug: string) {
   try {

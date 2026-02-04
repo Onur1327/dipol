@@ -112,7 +112,17 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Unoptimized görseller için (development'ta hız için)
     unoptimized: false,
+    // Görsel optimizasyonu ve caching
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 86400, // 24 saat cache
   },
+  // ISR ve caching optimizasyonları
+  experimental: {
+    // ISR yazılarını azaltmak için
+    isrMemoryCacheSize: 0, // Disk cache kullan
+  },
+  // Output ayarları
+  output: 'standalone', // Daha küçük build, daha az transfer
 };
 
 export default nextConfig;

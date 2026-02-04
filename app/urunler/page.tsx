@@ -5,8 +5,8 @@ import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/ProductFilters';
 import { serverApiRequest } from '@/lib/api';
 
-// Ürün listesi sayfasını cache'li yap (1 saatte bir yenilensin)
-export const revalidate = 3600;
+// Ürün listesi sayfasını cache'li yap (24 saatte bir yenilensin - ISR limitini azaltmak için)
+export const revalidate = 86400;
 
 async function getProducts(searchParams: Promise<{ category?: string; search?: string; page?: string }>) {
   const params = await searchParams;
