@@ -7,8 +7,8 @@ import HeroCarousel from '@/components/HeroCarousel';
 import ProductCarousel from '@/components/ProductCarousel';
 import { serverApiRequest } from '@/lib/api';
 
-// Anasayfayı cache'li yap (60 saniyede bir yenilensin)
-export const revalidate = 60;
+// Anasayfayı cache'li yap (1 saatte bir yenilensin)
+export const revalidate = 3600;
 
 async function getFeaturedProducts() {
   try {
@@ -21,7 +21,7 @@ async function getFeaturedProducts() {
         return data;
       }
     }
-    
+
     // Featured ürün yoksa tüm aktif ürünlerden son 8'ini al
     res = await serverApiRequest('/api/products?limit=8');
     if (!res.ok) return { products: [] };
@@ -73,7 +73,7 @@ async function getFeaturedCategories() {
     } catch (contactError) {
       console.log('Contact API hatası (normal olabilir):', contactError);
     }
-    
+
     // Öne çıkan kategori yoksa, ana kategorilerden ilk 3'ünü al
     const res = await serverApiRequest('/api/categories?parentOnly=true');
     if (!res.ok) {
@@ -84,7 +84,7 @@ async function getFeaturedCategories() {
     const mainCategories = (data.categories || data || [])
       .filter((cat: any) => cat && cat.active !== false)
       .slice(0, 3);
-    
+
     console.log('Ana sayfa kategorileri:', mainCategories.length, mainCategories.map((c: any) => c.name));
     return mainCategories;
   } catch (error) {
@@ -94,49 +94,54 @@ async function getFeaturedCategories() {
 }
 
 export default async function Home() {
-  const { products } = await getFeaturedProducts();
-  const carousels = await getCarousels();
-  const categories = await getFeaturedCategories();
+  // Verileri paralel olarak çekerek performansı optimize et
+  const [productsData, carousels, categories] = await Promise.all([
+    getFeaturedProducts(),
+    getCarousels(),
+    getFeaturedCategories()
+  ]);
+
+  const { products } = productsData;
 
   // Hero carousel slides - Backend'den geliyorsa onları kullan, yoksa varsayılanları
   const heroSlides = carousels.length > 0
     ? carousels.map((c: any) => ({
-        id: c._id,
-        image: c.image,
-        title: c.title,
-        subtitle: c.subtitle,
-        link: c.link || '/urunler',
-        buttonText: c.buttonText || 'Keşfet',
-      }))
+      id: c._id,
+      image: c.image,
+      title: c.title,
+      subtitle: c.subtitle,
+      link: c.link || '/urunler',
+      buttonText: c.buttonText || 'Keşfet',
+    }))
     : [
-        {
-          id: '1',
-          image: '/hero-1.jpg',
-          title: 'Tarzınızı Keşfedin',
-          subtitle: 'Modern ve şık kadın giyim koleksiyonu ile her anınızda özel hissedin',
-          link: '/urunler',
-          buttonText: 'Koleksiyonu Keşfet',
-        },
-        {
-          id: '2',
-          image: '/hero-2.jpg',
-          title: 'Yeni Sezon Koleksiyonu',
-          subtitle: 'En yeni trendleri keşfedin ve gardırobunuzu yenileyin',
-          link: '/urunler',
-          buttonText: 'Alışverişe Başla',
-        },
-        {
-          id: '3',
-          image: '/hero-3.jpg',
-          title: 'Özel İndirimler',
-          subtitle: 'Seçili ürünlerde %50\'ye varan indirimler',
-          link: '/urunler',
-          buttonText: 'İndirimleri Gör',
-        },
-      ];
+      {
+        id: '1',
+        image: '/hero-1.jpg',
+        title: 'Tarzınızı Keşfedin',
+        subtitle: 'Modern ve şık kadın giyim koleksiyonu ile her anınızda özel hissedin',
+        link: '/urunler',
+        buttonText: 'Koleksiyonu Keşfet',
+      },
+      {
+        id: '2',
+        image: '/hero-2.jpg',
+        title: 'Yeni Sezon Koleksiyonu',
+        subtitle: 'En yeni trendleri keşfedin ve gardırobunuzu yenileyin',
+        link: '/urunler',
+        buttonText: 'Alışverişe Başla',
+      },
+      {
+        id: '3',
+        image: '/hero-3.jpg',
+        title: 'Özel İndirimler',
+        subtitle: 'Seçili ürünlerde %50\'ye varan indirimler',
+        link: '/urunler',
+        buttonText: 'İndirimleri Gör',
+      },
+    ];
 
   return (
-    <div className="min-h-screen">
+    <main className="min-h-screen">
       <Navbar />
 
       {/* Hero Carousel */}
@@ -272,6 +277,6 @@ export default async function Home() {
       </section>
 
       <Footer />
-    </div>
+    </main>
   );
 }

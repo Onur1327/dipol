@@ -5,8 +5,8 @@ import ProductCard from '@/components/ProductCard';
 import ProductFilters from '@/components/ProductFilters';
 import { serverApiRequest } from '@/lib/api';
 
-// Ürün listesi sayfasını cache'li yap (60 saniyede bir yenilensin)
-export const revalidate = 60;
+// Ürün listesi sayfasını cache'li yap (1 saatte bir yenilensin)
+export const revalidate = 3600;
 
 async function getProducts(searchParams: Promise<{ category?: string; search?: string; page?: string }>) {
   const params = await searchParams;
@@ -16,20 +16,20 @@ async function getProducts(searchParams: Promise<{ category?: string; search?: s
     if (params.search) query.append('search', params.search);
     query.append('page', (params.page || '1').toString());
     query.append('limit', '12');
-    
+
     const res = await serverApiRequest(`/api/products?${query.toString()}`);
     if (!res.ok) {
       console.error('Ürünler API hatası:', res.status, res.statusText);
       return { products: [], pagination: {} };
     }
     const data = await res.json();
-    
+
     // Debug için
     if (process.env.NODE_ENV === 'development') {
       console.log('Kategori:', params.category);
       console.log('Ürün sayısı:', data.products?.length || 0);
     }
-    
+
     return data;
   } catch (error) {
     console.error('Ürünler yüklenirken hata:', error);
@@ -83,11 +83,10 @@ export default async function ProductsPage({
                           <a
                             key={page}
                             href={`/urunler?page=${page}`}
-                            className={`px-4 py-2 rounded-full text-sm font-medium ${
-                              pagination.page === page
+                            className={`px-4 py-2 rounded-full text-sm font-medium ${pagination.page === page
                                 ? 'bg-primary text-white shadow-sm'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                              }`}
                           >
                             {page}
                           </a>

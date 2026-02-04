@@ -4,18 +4,18 @@ import Footer from '@/components/Footer';
 import ProductDetail from '@/components/ProductDetail';
 import { serverApiRequest } from '@/lib/api';
 
-// Ürün detay sayfasını cache'li yap (60 saniyede bir yenilensin)
-export const revalidate = 60;
+// Ürün detay sayfasını cache'li yap (1 saatte bir yenilensin)
+export const revalidate = 3600;
 
 async function getProduct(slug: string) {
   try {
     // Slug ile direkt ürün getir - server-side için
     const response = await serverApiRequest(`/api/products/${slug}`);
-    
+
     if (response.ok) {
       return await response.json();
     }
-    
+
     // Hata durumunda log
     const error = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }));
     console.error('Ürün getirme hatası:', error);

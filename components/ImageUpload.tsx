@@ -20,7 +20,7 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [mode, setMode] = useState<'url' | 'upload'>('url');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Ensure value is always a string - never undefined or null
   // useMemo kullanarak her render'da aynı değeri garantiliyoruz
   const safeValue = useMemo(() => {
@@ -61,9 +61,9 @@ export default function ImageUpload({
           }
 
           ctx.drawImage(img, 0, 0, width, height);
-          
-          // JPEG formatında sıkıştır (PNG'den daha küçük)
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+
+          // WebP formatında sıkıştır (JPEG'den ve PNG'den daha küçük)
+          const compressedBase64 = canvas.toDataURL('image/webp', quality);
           resolve(compressedBase64);
         };
         img.onerror = reject;
@@ -89,11 +89,11 @@ export default function ImageUpload({
     try {
       // Görseli optimize et ve base64'e çevir
       const base64String = await compressImage(file);
-        
+
       // Optimize edilmiş base64'i kullan
       onChange(base64String);
       setUploading(false);
-      
+
       // Backend'e gönder (opsiyonel - validasyon için)
       try {
         const token = localStorage.getItem('token');
@@ -151,22 +151,20 @@ export default function ImageUpload({
         <button
           type="button"
           onClick={() => setMode('url')}
-          className={`px-3 py-1 text-sm rounded ${
-            mode === 'url'
+          className={`px-3 py-1 text-sm rounded ${mode === 'url'
               ? 'bg-primary text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+            }`}
         >
           URL
         </button>
         <button
           type="button"
           onClick={() => setMode('upload')}
-          className={`px-3 py-1 text-sm rounded ${
-            mode === 'upload'
+          className={`px-3 py-1 text-sm rounded ${mode === 'upload'
               ? 'bg-primary text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+            }`}
         >
           Dosya Yükle
         </button>

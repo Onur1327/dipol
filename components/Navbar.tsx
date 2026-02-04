@@ -17,6 +17,11 @@ export default function Navbar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -26,25 +31,25 @@ export default function Navbar() {
         if (res.ok) {
           const data = await res.json();
           const categories = data.categories || data || [];
-          
+
           // Tüm aktif kategorileri tut (alt kategorileri bulmak için)
           const activeCategories = categories.filter((cat: any) => cat.active !== false);
           setAllCategories(activeCategories);
-          
+
           // Sadece aktif ana kategorileri al (parent olmayanlar)
           const activeMainCategories = activeCategories.filter((cat: any) => {
             // Parent yoksa veya parent null/undefined ise ana kategoridir
-            const hasNoParent = !cat.parent || 
-                               (typeof cat.parent === 'object' && !cat.parent._id) ||
-                               cat.parent === null ||
-                               cat.parent === undefined;
+            const hasNoParent = !cat.parent ||
+              (typeof cat.parent === 'object' && !cat.parent._id) ||
+              cat.parent === null ||
+              cat.parent === undefined;
             return hasNoParent;
           });
-          
+
           // Order'a göre sırala
           activeMainCategories.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
           setMainCategories(activeMainCategories);
-          
+
           // Debug için (production'da da görmek için)
           if (process.env.NODE_ENV === 'development') {
             console.log('Toplam kategori:', categories.length);
@@ -121,38 +126,38 @@ export default function Navbar() {
   // Alt kategorileri bul
   const getSubcategories = (categoryId: string) => {
     if (!categoryId) return [];
-    
+
     const subcategories = allCategories.filter((sub: any) => {
       // Parent kontrolü - farklı formatları kontrol et
       if (!sub.parent) return false;
-      
+
       let parentId: string | null = null;
-      
+
       // Parent bir object ise (populate edilmiş)
       if (typeof sub.parent === 'object' && sub.parent !== null) {
         parentId = sub.parent._id ? sub.parent._id.toString() : null;
-      } 
+      }
       // Parent bir string/ObjectId ise
       else if (sub.parent) {
         parentId = sub.parent.toString();
       }
-      
+
       const catId = categoryId.toString();
       const matches = parentId === catId && sub.active !== false;
-      
+
       // Debug için
       if (process.env.NODE_ENV === 'development' && matches) {
         console.log('Alt kategori bulundu:', sub.name, 'Parent ID:', parentId, 'Category ID:', catId);
       }
-      
+
       return matches;
     }).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
-    
+
     // Debug için
     if (process.env.NODE_ENV === 'development') {
       console.log(`Kategori ${categoryId} için ${subcategories.length} alt kategori bulundu:`, subcategories.map((s: any) => s.name));
     }
-    
+
     return subcategories;
   };
 
@@ -181,22 +186,23 @@ export default function Navbar() {
   });
 
   // Kategoriler yüklenene kadar sadece sabit linkleri göster
-  const mainNavItems = categoriesLoading 
-    ? staticNavItems 
+  const mainNavItems = categoriesLoading
+    ? staticNavItems
     : [
-        ...staticNavItems.slice(0, 2), // Ana Sayfa, Yeni Gelenler
-        ...categoryNavItems, // Dinamik kategoriler
-        ...staticNavItems.slice(2), // İndirimli, Beden Tablosu
-      ];
+      ...staticNavItems.slice(0, 2), // Ana Sayfa, Yeni Gelenler
+      ...categoryNavItems, // Dinamik kategoriler
+      ...staticNavItems.slice(2), // İndirimli, Beden Tablosu
+    ];
 
   return (
-    <>
+    <div className="nav-root" suppressHydrationWarning={true}>
       {/* Top Promotional Bar */}
-      <div className="bg-black text-white text-sm py-2 fixed w-full top-0 z-50 overflow-hidden" suppressHydrationWarning>
+      <div className="bg-black text-white text-sm py-2 fixed w-full top-0 z-50 overflow-hidden" suppressHydrationWarning={true}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative">
-            <div className="animate-marquee whitespace-nowrap">
-              <span className="inline-block">24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT • 24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT</span>
+          <div className="relative overflow-hidden h-6">
+            <div className="animate-marquee whitespace-nowrap absolute" suppressHydrationWarning={true}>
+              <span className="inline-block px-4">24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT • 24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT</span>
+              <span className="inline-block px-4">24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT • 24 SAATTE KARGONUZ HAZIR • 2500 TL ÜZERİ ALIŞVERİŞLERDE KARGO ÜCRETSİZ • HIZLI TESLİMAT</span>
             </div>
           </div>
         </div>
@@ -268,9 +274,11 @@ export default function Navbar() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {favoriteCount}
-                </span>
+                {mounted && favoriteCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {favoriteCount}
+                  </span>
+                )}
               </Link>
 
               {/* User Login */}
@@ -319,14 +327,9 @@ export default function Navbar() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                {itemCount > 0 && (
+                {mounted && (
                   <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {itemCount}
-                  </span>
-                )}
-                {itemCount === 0 && (
-                  <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    0
                   </span>
                 )}
               </Link>
@@ -344,12 +347,12 @@ export default function Navbar() {
               {mainNavItems.map((item: any) => {
                 const isOpen = openDropdown === item.name;
                 const hasSubcategories = item.hasDropdown && item.subcategories && Array.isArray(item.subcategories) && item.subcategories.length > 0;
-                
+
                 // Debug için
                 if (process.env.NODE_ENV === 'development' && item.hasDropdown) {
                   console.log(`Kategori: ${item.name}, hasDropdown: ${item.hasDropdown}, hasSubcategories: ${hasSubcategories}, subcategories count: ${item.subcategories?.length || 0}`);
                 }
-                
+
                 return (
                   <div
                     key={item.name}
@@ -373,10 +376,10 @@ export default function Navbar() {
                           className="text-gray-700 hover:text-primary transition-colors ml-1 p-2 -mr-2"
                           aria-label="Alt kategorileri göster"
                         >
-                          <svg 
-                            className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-                            fill="none" 
-                            stroke="currentColor" 
+                          <svg
+                            className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -384,28 +387,27 @@ export default function Navbar() {
                         </button>
                       )}
                     </div>
-                    
-                      {/* Dropdown Menu - Alt kategoriler */}
-                      {hasSubcategories && (
-                        <div 
-                          className={`dropdown-menu absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 py-3 z-[1000] ${
-                            isOpen ? 'block' : 'hidden'
+
+                    {/* Dropdown Menu - Alt kategoriler */}
+                    {hasSubcategories && (
+                      <div
+                        className={`dropdown-menu absolute top-full left-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 py-3 z-[1000] ${isOpen ? 'block' : 'hidden'
                           }`}
-                          data-category={item.name}
-                          style={{
-                            opacity: isOpen ? 1 : 0,
-                            transform: isOpen ? 'translateY(0) translateX(0)' : 'translateY(-10px) translateX(0)',
-                            transition: isOpen ? 'opacity 0.2s ease-out, transform 0.2s ease-out' : 'opacity 0.15s ease-out, transform 0.15s ease-out',
-                            minWidth: '300px',
-                            maxWidth: '350px',
-                            maxHeight: '500px',
-                            overflowY: 'auto',
-                          }}
-                          onClick={(e) => {
-                            // Dropdown içindeki tıklamaları durdur
-                            e.stopPropagation();
-                          }}
-                        >
+                        data-category={item.name}
+                        style={{
+                          opacity: isOpen ? 1 : 0,
+                          transform: isOpen ? 'translateY(0) translateX(0)' : 'translateY(-10px) translateX(0)',
+                          transition: isOpen ? 'opacity 0.2s ease-out, transform 0.2s ease-out' : 'opacity 0.15s ease-out, transform 0.15s ease-out',
+                          minWidth: '300px',
+                          maxWidth: '350px',
+                          maxHeight: '500px',
+                          overflowY: 'auto',
+                        }}
+                        onClick={(e) => {
+                          // Dropdown içindeki tıklamaları durdur
+                          e.stopPropagation();
+                        }}
+                      >
                         <div className="px-2">
                           {/* Alt kategoriler */}
                           {item.subcategories.map((sub: any) => (
@@ -471,7 +473,7 @@ export default function Navbar() {
                   )}
                 </div>
               ))}
-              
+
               {/* Mobile User Menu */}
               <div className="border-t border-gray-200 mt-4 pt-4">
                 {user ? (
@@ -520,6 +522,6 @@ export default function Navbar() {
 
       {/* Spacer for fixed navbar */}
       <div className="h-40"></div>
-    </>
+    </div>
   );
 }
